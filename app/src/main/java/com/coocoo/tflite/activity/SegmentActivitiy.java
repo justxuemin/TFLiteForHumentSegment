@@ -45,7 +45,7 @@ public class SegmentActivitiy extends CameraActivity {
     }
 
     private Segment.Device getDevice() {
-        return Segment.Device.CPU;
+        return Segment.Device.GPU;
     }
 
     private Segment.Model getModel() {

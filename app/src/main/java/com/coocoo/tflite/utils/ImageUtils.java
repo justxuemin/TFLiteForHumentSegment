@@ -16,6 +16,8 @@ limitations under the License.
 package com.coocoo.tflite.utils;
 
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
+import android.graphics.RectF;
 import android.os.Environment;
 import android.util.Log;
 
@@ -149,5 +151,18 @@ public class ImageUtils implements TFConstants {
         out[yp++] = YUV2RGB(0xff & yData[pY + i], 0xff & uData[uv_offset], 0xff & vData[uv_offset]);
       }
     }
+  }
+
+  public static Bitmap scaleBitmapAndKeepRatio(Bitmap targetBmp, int reqHeightInPixels, int reqWidthInPixels) {
+    if (targetBmp.getHeight() == reqHeightInPixels && targetBmp.getWidth() == reqWidthInPixels) {
+      return targetBmp;
+    }
+    Matrix matrix = new Matrix();
+    matrix.setRectToRect(new RectF(0f, 0f, (float) targetBmp.getWidth(), (float) targetBmp.getHeight()), new RectF(0f, 0f, (float) reqWidthInPixels, (float) reqHeightInPixels), Matrix.ScaleToFit.FILL);
+    return Bitmap.createBitmap(
+            targetBmp, 0, 0,
+            targetBmp.getWidth(),
+            targetBmp.getWidth(), matrix, true
+    );
   }
 }

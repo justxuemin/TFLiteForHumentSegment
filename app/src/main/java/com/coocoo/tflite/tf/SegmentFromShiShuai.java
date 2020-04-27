@@ -10,14 +10,14 @@ import java.io.IOException;
 public class SegmentFromShiShuai extends Segment {
 
 
-    private static final float IMAGE_MEAN = 127.0f;
-    private static final float IMAGE_STD = 128.0f;
+    private static final float IMAGE_MEAN = -1.0f;
+    private static final float IMAGE_STD = 1.0f;
 
     /**
      * Float model does not need dequantization in the post-processing. Setting mean and std as 0.0f
      * and 1.0f, repectively, to bypass the normalization.
      */
-    private static final float PROBABILITY_MEAN = 0.0f;
+    private static final float PROBABILITY_MEAN = -1.0f;
 
     private static final float PROBABILITY_STD = 1.0f;
 

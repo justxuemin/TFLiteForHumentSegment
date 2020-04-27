@@ -98,6 +98,7 @@ public abstract class CameraActivity extends AppCompatActivity implements ImageR
             rgbBytes = new int[previewWidth * previewHeight];
         }
         try {
+
             final Image image = reader.acquireLatestImage();
 
             if (image == null) {

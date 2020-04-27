@@ -23,6 +23,7 @@ import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.ImageReader;
+import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -170,7 +171,7 @@ public class CameraConnectionFragment extends Fragment implements TFConstants {
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-       textureView = view.findViewById(R.id.texture);
+        textureView = view.findViewById(R.id.texture);
     }
 
     @Override
