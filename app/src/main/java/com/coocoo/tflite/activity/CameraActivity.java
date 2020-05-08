@@ -1,8 +1,5 @@
 package com.coocoo.tflite.activity;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.Manifest;
 import android.app.Fragment;
 import android.content.Context;
@@ -22,10 +19,12 @@ import android.os.Trace;
 import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.coocoo.tflite.R;
 import com.coocoo.tflite.TFConstants;
