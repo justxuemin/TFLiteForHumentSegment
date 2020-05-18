@@ -35,10 +35,13 @@ import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
+import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.coocoo.tflite.R;
+import com.coocoo.tflite.TFConstants;
 import com.coocoo.tflite.tf.Segment;
 import com.coocoo.tflite.widget.AutoFitTextureView;
 
@@ -59,7 +62,7 @@ import static android.opengl.GLES30.GL_STREAM_COPY;
 import static android.opengl.GLES31.GL_COMPUTE_SHADER;
 import static android.opengl.GLES31.GL_SHADER_STORAGE_BUFFER;
 
-public class SegmentActivitiy extends CameraActivity {
+public class SegmentActivitiy extends AppCompatActivity implements TFConstants {
 
     /** Max preview width that is guaranteed by Camera2 API */
     private static final int MAX_PREVIEW_WIDTH = 1920;
@@ -140,8 +143,9 @@ public class SegmentActivitiy extends CameraActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        glesView = findViewById(R.id.gles);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        setContentView(R.layout.activity_main);
+        glesView = findViewById(R.id.container);
     }
 
     @Override
@@ -557,6 +561,9 @@ public class SegmentActivitiy extends CameraActivity {
                 EGLConfig[] config  = new EGLConfig [1];
                 EGLSurface[] surface = new EGLSurface[1];
 
+                if (eglContext == null) {
+                    return;
+                }
                 initGLES(context, display, config, surface, eglContext);
                 gpuDisplay = display[0];
                 gpuContext = context[0];
@@ -697,7 +704,7 @@ public class SegmentActivitiy extends CameraActivity {
 
         // classify the frame in the SSBO
         EGL14.eglMakeCurrent(gpuDisplay, gpuSurface, gpuSurface, gpuContext);
-        classifier.classifyFrameSSBO(textToShow, copy_t1 - copy_t0);
+        segment.segmentFrameSSBO(copy_t1 - copy_t0);
 
         // resumes the normal egl context
         EGL14.eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext);
@@ -914,25 +921,25 @@ public class SegmentActivitiy extends CameraActivity {
 
     private long lastProcessingTimeMs;
 
-    @Override
-    protected Size getDesiredPreviewFrameSize() {
-        return DESIRED_PREVIEW_SIZE;
-    }
-
-    @Override
-    protected void onPreviewSizeChosen(Size size, int rotation) {
-        recreateSegmenter(getModel(), getDevice(), getNumThreads());
-        if (segment == null) {
-            Log.e(TAG, "No segment on preview!");
-            return;
-        }
-
-        previewWidth = size.getWidth();
-        previewHeight = size.getHeight();
-        sensorOrientation = rotation - getScreenOrientation();
-
-        rgbFrameBitmap = Bitmap.createBitmap(previewWidth, previewHeight, Bitmap.Config.ARGB_8888);
-    }
+//    @Override
+//    protected Size getDesiredPreviewFrameSize() {
+//        return DESIRED_PREVIEW_SIZE;
+//    }
+//
+//    @Override
+//    protected void onPreviewSizeChosen(Size size, int rotation) {
+//        recreateSegmenter(getModel(), getDevice(), getNumThreads());
+//        if (segment == null) {
+//            Log.e(TAG, "No segment on preview!");
+//            return;
+//        }
+//
+//        previewWidth = size.getWidth();
+//        previewHeight = size.getHeight();
+//        sensorOrientation = rotation - getScreenOrientation();
+//
+//        rgbFrameBitmap = Bitmap.createBitmap(previewWidth, previewHeight, Bitmap.Config.ARGB_8888);
+//    }
 
     private int getNumThreads() {
         return 4;
@@ -962,22 +969,22 @@ public class SegmentActivitiy extends CameraActivity {
     }
 
 
-    @Override
-    protected void processImage() {
-        rgbFrameBitmap.setPixels(getRgbBytes(), 0, previewWidth, 0, 0, previewWidth, previewHeight);
-        final int cropSize = Math.min(previewWidth, previewHeight);
-        runInBackground(new Runnable() {
-            @Override
-            public void run() {
-                if (segment != null) {
-                    final long startTime = SystemClock.uptimeMillis();
-                    segment.segmentImag(rgbFrameBitmap, sensorOrientation);
-                    lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
-                    showInference(lastProcessingTimeMs + "ms");
-                }
-                readyForNextImage();
-            }
-        });
-    }
+//    @Override
+//    protected void processImage() {
+//        rgbFrameBitmap.setPixels(getRgbBytes(), 0, previewWidth, 0, 0, previewWidth, previewHeight);
+//        final int cropSize = Math.min(previewWidth, previewHeight);
+//        runInBackground(new Runnable() {
+//            @Override
+//            public void run() {
+//                if (segment != null) {
+//                    final long startTime = SystemClock.uptimeMillis();
+//                    segment.segmentImag(rgbFrameBitmap, sensorOrientation);
+//                    lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
+//                    showInference(lastProcessingTimeMs + "ms");
+//                }
+//                readyForNextImage();
+//            }
+//        });
+//    }
 
 }

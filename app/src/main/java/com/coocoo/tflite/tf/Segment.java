@@ -3,6 +3,7 @@ package com.coocoo.tflite.tf;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.opengl.GLES31;
+import android.os.SystemClock;
 import android.util.Log;
 
 import com.coocoo.tflite.TFConstants;
@@ -75,6 +76,22 @@ public abstract class Segment implements TFConstants {
                 tflite.modifyGraphWithDelegate(gpuDelegate);
             }
         }
+    }
+
+    public void segmentFrameSSBO(long l) {
+        if (tflite == null) {
+            return;
+        }
+        long startTime = SystemClock.uptimeMillis();
+        runInference();
+        long endTime = SystemClock.uptimeMillis();
+    }
+
+
+    private float[][] labelProbArray = null;
+
+    private void runInference() {
+        tflite.run(null, labelProbArray);
     }
 
     public enum Model {

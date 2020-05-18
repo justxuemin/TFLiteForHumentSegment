@@ -21,7 +21,7 @@ public class SegmentFromShiShuai extends Segment {
 
     private static final float PROBABILITY_STD = 1.0f;
 
-    protected SegmentFromShiShuai(Activity activity, Device device, int numThreads) throws IOException {
+    public SegmentFromShiShuai(Activity activity, Device device, int numThreads) throws IOException {
         super(activity, device, numThreads);
     }
 
