@@ -74,15 +74,10 @@ import androidx.core.content.ContextCompat;
 import androidx.legacy.app.FragmentCompat;
 
 import com.coocoo.tflite.R;
-import com.coocoo.tflite.classifier.ImageClassifier;
-import com.coocoo.tflite.classifier.ImageClassifierFloatMobileNet;
-import com.coocoo.tflite.classifier.ImageClassifierQuantizedMobileNet;
 import com.coocoo.tflite.segmentation.Segmentation;
 import com.coocoo.tflite.widget.AutoFitTextureView;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -576,7 +571,7 @@ public class Camera2BasicFragment extends Fragment
 
         // We don't use a front facing camera in this sample.
         Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
-        if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
+        if (facing != null && facing != CameraCharacteristics.LENS_FACING_FRONT) {
           continue;
         }
 
@@ -1105,26 +1100,27 @@ public class Camera2BasicFragment extends Fragment
   private int createShaderProgram_TexToSsbo (int cam_cx, int cam_cy, int img_cx, int img_cy) {
     // create ssbo --> texture shader program
     String shaderCode =
-                    "   #version 310 es\n" +
-                    "   #extension GL_OES_EGL_image_external_essl3: enable\n" +
-                    "   precision mediump float;\n" + // need to specify 'mediump' for float
-                    "   layout(local_size_x = 16, local_size_y = 16) in;\n" +
-                    //"   layout(local_size_x = 8, local_size_y = 8) in;\n" +
-                    //"   layout(binding = 0) uniform sampler2D in_data; \n" +
-                    "   layout(binding = 0) uniform samplerExternalOES in_data; \n" +
-                    "   layout(std430) buffer;\n" +
-                    "   layout(binding = 1) buffer Input { float elements[]; } out_data;\n" +
-                    "   void main() {\n" +
-                    "     ivec2 gid = ivec2(gl_GlobalInvocationID.xy);\n" +
-                    "     if (gid.x >= " + img_cx + " || gid.y >= " + img_cy + ") return;\n" +
-                    "     vec2 uv = vec2(gl_GlobalInvocationID.xy) / " + img_cx + ".0;\n" +
-                    "     vec4 pixel = texture (in_data, uv);\n" +
-                    "     int idx = 3 * (gid.y * " + img_cx + " + gid.x);\n" +
-                    //"     if (gid.x >= 120) pixel.x = 1.0;\n" + // DEBUG...
-                    "     out_data.elements[idx + 0] = pixel.x;\n" +
-                    "     out_data.elements[idx + 1] = pixel.y;\n" +
-                    "     out_data.elements[idx + 2] = pixel.z;\n" +
-                    "   }";
+            "   #version 310 es\n" +
+            "   #extension GL_OES_EGL_image_external_essl3: enable\n" +
+            "   precision mediump float;\n" +
+            "   layout(local_size_x = 8, local_size_y = 8) in;\n" +
+            "   layout(binding = 0) uniform samplerExternalOES in_data; \n" +
+            "   layout(std430) buffer;\n" +
+            "   layout(binding = 1) buffer Input { float elements[]; } out_data;\n" +
+            "   void main() {\n" +
+            "     ivec2 position = ivec2(gl_GlobalInvocationID.xy);\n" +
+            "     if (position.x >= 256 || position.y >= 256) return;\n" +
+            "     vec2 uv = vec2(gl_GlobalInvocationID.xy) / 256.0;\n" +
+            "     vec4 pixel = texture (in_data, uv);\n" +
+                    "vec3 diff = vec3(104.0, 112.0, 121.0);\n"+
+            "     int idx = 3 * (position.y *  256 + position.x);\n" +
+            "     out_data.elements[idx + 0] = (pixel.x - diff.x) / 255.0;\n" +
+            "     out_data.elements[idx + 1] = (pixel.y - diff.y) / 255.0;\n" +
+            "     out_data.elements[idx + 2] = (pixel.z - diff.z) / 255.0;\n" +
+//                    "     out_data.elements[idx + 0] = 0.2;\n" +
+//                    "     out_data.elements[idx + 1] = 0.2;\n" +
+//                    "     out_data.elements[idx + 2] = 0.2;\n" +
+            "   }";
 
     int shader = GLES31.glCreateShader(GL_COMPUTE_SHADER);
     GLES31.glShaderSource(shader, shaderCode);
@@ -1292,8 +1288,8 @@ public class Camera2BasicFragment extends Fragment
     EGL14.eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext);
 
     // TODO: remove hard code.
-    int img_cx = 224;
-    int img_cy = 224;
+    int img_cx = 256;
+    int img_cy = 256;
 
     //==========  cam -> tex -> ssbo  ==========
     // create a texture name

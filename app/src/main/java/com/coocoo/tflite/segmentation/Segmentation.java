@@ -1,8 +1,9 @@
 package com.coocoo.tflite.segmentation;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
+import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.os.SystemClock;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
@@ -19,8 +20,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Arrays;
 
 public class Segmentation implements TFConstants {
 
@@ -46,7 +49,7 @@ public class Segmentation implements TFConstants {
         tfliteModel = loadModelFile(context);
         tflite = new Interpreter(tfliteModel, tfliteOptions);
 
-        segmentationMasks = ByteBuffer.allocateDirect(1 * imageSize * imageSize * NUM_CLASSES * 4);
+        segmentationMasks = ByteBuffer.allocateDirect(256*256*2*4);
         segmentationMasks.order(ByteOrder.nativeOrder());
     }
 
@@ -66,7 +69,7 @@ public class Segmentation implements TFConstants {
     }
 
     private String getModelPath() {
-        return "deeplabv3_257_mv_gpu.tflite";
+        return "shishuai.tflite";
     }
 
     public void setNumThreads(int numThreads) {
@@ -130,11 +133,11 @@ public class Segmentation implements TFConstants {
 
 
     public int getImageSizeX() {
-        return 224;
+        return 256;
     }
 
     public int getImageSizeY() {
-        return 224;
+        return 256;
     }
 
     // classify a frame using SSBO
@@ -164,11 +167,33 @@ public class Segmentation implements TFConstants {
         builder.append(span);
     }
 
+    int[][] mSegmentBits = new int[256][256];
     private void convertBytebufferMaskToBitmap() {
-        // TODO
+        StringBuilder sb = new StringBuilder();
+        Bitmap maskBitmap = Bitmap.createBitmap(256, 256, Bitmap.Config.ARGB_8888);
+        for (int y = 0; y < 256; y++) {
+            for (int x = 0; x < 256;  x++) {
+                float maxVal = 0f;
+                mSegmentBits[x][y] = 0;
+                for (int c = 0; c < 2; c++) {
+                    float value = segmentationMasks.getFloat((y * 256 * 2 + x * 2 + c) * 4);
+                    if (c == 0 /*|| value > maxVal*/) {
+                        maxVal = value;
+                        mSegmentBits[x][y] = value < 0 ? 0 : 255;
+                    }
+                    sb.append(value + "\t");
+                }
+//                if (mSegmentBits[x][y] == 0) {
+//                    sb.append(mSegmentBits[x][y] + "\t");
+//                }
+                maskBitmap.setPixel(x, y, mSegmentBits[x][y] == 0? Color.RED : Color.BLUE);
+            }
+        }
+        Log.e("tflite", "result:" + sb.toString());
     }
 
     private void runInference() {
+        segmentationMasks.rewind();
         tflite.run(null, segmentationMasks);
     }
 }

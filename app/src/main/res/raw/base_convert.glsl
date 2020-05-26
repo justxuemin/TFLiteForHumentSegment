@@ -13,7 +13,7 @@ void main() {
     if (gid.x >= img_cx || gid.y >= img_cy ) return;
     vec2 uv = vec2(gl_GlobalInvocationID.xy) /  + img_cx + .0;
     vec4 pixel = texture (in_data, uv);
-    int idx = 3 * (gid.y *  + img_cx +  + gid.x);
+    int idx = 3 * (gid.y *  img_cx + gid.x);
     // if (gid.x >= 120) pixel.x = 1.0;
     // DEBUG...
     out_data.elements[idx + 0] = pixel.x;
